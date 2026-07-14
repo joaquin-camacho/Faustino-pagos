@@ -46,3 +46,4 @@ App para registrar los pagos de la cuota de la casa, sincronizada entre todos lo
 - Cualquiera que tenga el link puede **ver** los datos (leer no pide PIN). Para **agregar, borrar o resetear** pagos si hace falta el PIN que configuraste en el paso 4.
 - Si queres que ni siquiera se pueda ver sin autenticarse, Vercel tiene "Password Protection" a nivel de sitio completo en los planes Pro — avisame si eso te interesa y lo agregamos.
 - El navegador tambien guarda una copia local de respaldo (por si te quedas sin señal), pero la fuente de verdad es siempre el servidor.
+ 
