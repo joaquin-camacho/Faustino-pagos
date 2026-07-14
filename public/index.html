@@ -296,7 +296,7 @@ let planFilter='all',pinCallback=null,pendingDeleteId=null,pendingNewTrans=null,
 // Carga inicial desde el servidor (con fallback al cache local si falla)
 async function cargarDatos(){
   try{
-    const res=await fetch('/api/data');
+    const res=await fetch('/api/data?t='+Date.now(),{cache:'no-store'});
     if(!res.ok)throw new Error('No se pudo conectar con el servidor.');
     const data=await res.json();
     trans=Array.isArray(data.trans)?data.trans:[];
