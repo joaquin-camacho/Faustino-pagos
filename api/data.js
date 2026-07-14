@@ -14,7 +14,7 @@ async function kvSet(key, value) {
   const res = await fetch(`${KV_URL}/set/${key}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(value)
+    body: value
   });
   if (!res.ok) throw new Error('No se pudo escribir en la base de datos.');
   return res.json();
@@ -29,6 +29,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const raw = await kvGet('trans');
       const trans = raw ? JSON.parse(raw) : [];
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
       return res.status(200).json({ trans });
     }
 
