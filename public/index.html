@@ -167,6 +167,9 @@ footer{text-align:center;font-size:12px;color:var(--text-muted);margin-top:2.5re
   </div>
   <div id="tab-historial" class="tab-content active">
     <div class="empty-state" id="empty-state"><div class="empty-icon">&#129683;</div>Todav&iacute;a no hay pagos registrados.</div>
+    <div id="undo-wrap" style="display:none;margin-bottom:12px">
+      <button onclick="deshacerUltimo()" style="width:100%;padding:9px 16px;background:var(--surface2);color:var(--red,#b3261e);border:1px solid var(--border);border-radius:var(--radius);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;text-align:left" id="undo-btn">&#8617; Deshacer &uacute;ltimo pago</button>
+    </div>
     <div class="table-wrap" id="table-wrap" style="display:none">
       <table>
         <thead><tr><th>Fecha</th><th>Monto</th><th>Observaciones</th><th>Comprobante</th><th></th></tr></thead>
@@ -603,6 +606,11 @@ function enviarWhatsApp(){window.open('https://wa.me/?text='+encodeURIComponent(
 
 // RENDER
 function eliminarTrans(id){pendingDeleteId=id;ejecutarAccion('delete')}
+function deshacerUltimo(){
+  if(!trans.length){showWarn('No hay pagos para deshacer.');return}
+  pendingDeleteId=trans[trans.length-1].id;
+  ejecutarAccion('delete');
+}
 function resetTodo(){ejecutarAccion('reset')}
 function refresh(){updateSummary();renderHistorial();renderPlan()}
 
@@ -623,8 +631,16 @@ function renderHistorial(){
   const tbody=document.getElementById('pagos-tbody');
   const wrap=document.getElementById('table-wrap');
   const empty=document.getElementById('empty-state');
-  if(!trans.length){wrap.style.display='none';empty.style.display='block';return}
+  const undoWrap=document.getElementById('undo-wrap');
+  const undoBtn=document.getElementById('undo-btn');
+  if(!trans.length){
+    wrap.style.display='none';empty.style.display='block';undoWrap.style.display='none';
+    return;
+  }
   wrap.style.display='block';empty.style.display='none';
+  const ultimo=trans[trans.length-1];
+  undoWrap.style.display='block';
+  undoBtn.innerHTML='&#8617; Deshacer &uacute;ltimo pago &mdash; '+fmtDate(ultimo.fecha)+', '+fmt(ultimo.monto);
   const sorted=[...trans].sort((a,b)=>b.fecha.localeCompare(a.fecha));
   tbody.innerHTML=sorted.map(t=>'<tr><td>'+fmtDate(t.fecha)+'</td><td>'+fmt(t.monto)+'</td>'
     +'<td style="color:var(--text-muted);font-size:12px;max-width:200px">'+(t.obs||'&mdash;')+'</td>'
