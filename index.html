@@ -293,10 +293,6 @@ const CACHE_KEY='mutuo_pagos_cache_v1';
 let trans=JSON.parse(localStorage.getItem(CACHE_KEY)||'[]');
 let planFilter='all',pinCallback=null,pendingDeleteId=null,pendingNewTrans=null,pendingImportTrans=null,pendingNewFile=null;
 
-function getCachedPin(){return sessionStorage.getItem('mutuo_pin_session')}
-function setCachedPin(p){sessionStorage.setItem('mutuo_pin_session',p)}
-function clearCachedPin(){sessionStorage.removeItem('mutuo_pin_session')}
-
 // Carga inicial desde el servidor (con fallback al cache local si falla)
 async function cargarDatos(){
   try{
@@ -324,7 +320,6 @@ async function guardarRemoto(pin){
     throw new Error(data.error||'Error al guardar los datos.');
   }
   localStorage.setItem(CACHE_KEY,JSON.stringify(trans));
-  setCachedPin(pin);
 }
 
 // Sube la foto del comprobante (como base64) y devuelve la URL publica.
@@ -356,14 +351,13 @@ async function subirComprobante(file,pin){
 }
 
 // Punto de entrada para toda accion que modifica datos (agregar/eliminar/borrar todo)
+// Siempre pide el PIN por pantalla, nunca lo recuerda entre acciones (medida de seguridad).
 function ejecutarAccion(accion){
   pinCallback=accion;
-  const cached=getCachedPin();
-  if(cached)aplicarConPin(cached,true);
-  else solicitarPIN(accion);
+  solicitarPIN(accion);
 }
 
-async function aplicarConPin(pin,silencioso){
+async function aplicarConPin(pin){
   const accion=pinCallback,deleteId=pendingDeleteId;
   const previo=trans;
   let successMsg='';
@@ -394,17 +388,7 @@ async function aplicarConPin(pin,silencioso){
   }catch(err){
     trans=previo;
     const esPin=err&&err.message&&err.message.toLowerCase().includes('pin');
-    if(silencioso){
-      clearCachedPin();
-      if(esPin){
-        solicitarPIN(accion);
-        pinError(true,'Tu PIN guardado ya no es valido. Ingresalo de nuevo.');
-      } else {
-        showErr('No se pudo guardar: '+(err.message||'error desconocido')+'.');
-      }
-    } else {
-      pinError(true,esPin?'PIN incorrecto. Intenta de nuevo.':err.message);
-    }
+    pinError(true,esPin?'PIN incorrecto. Intenta de nuevo.':err.message);
     if(btn){btn.disabled=false;btn.textContent='Confirmar pago \u2192'}
     return;
   }
@@ -522,7 +506,7 @@ function cerrarPIN(){
 function confirmarPIN(){
   const input=document.getElementById('pin-input').value.trim();
   if(!input){pinError(true,'Ingresa el PIN.');return}
-  aplicarConPin(input,false);
+  aplicarConPin(input);
 }
 
 function pinError(show,msg){
